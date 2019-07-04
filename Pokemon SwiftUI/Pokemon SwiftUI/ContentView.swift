@@ -53,10 +53,7 @@ struct SearchBar : View {
   var body: some View {
     HStack {
       Image(systemName: "magnifyingglass")
-      TextField(
-        $text,
-        placeholder: Text("Pokemon Search...")
-        ).textFieldStyle(.roundedBorder)
+      TextField("Pokemon Search...", text: $text).textFieldStyle(.roundedBorder)
       Button(action: { self.text = "" }) {
         Text("Clear")
         }
@@ -72,7 +69,7 @@ struct SearchBar : View {
 struct PokemonRow : View {
   let pokemon: Pokemon
   var body: some View {
-    NavigationButton(destination: PokemonDetailView(pokemon: pokemon), isDetail: true) {
+    NavigationLink(destination: PokemonDetailView(pokemon: pokemon)) {
       VStack(alignment: .center)  {
         Text(pokemon.name)
           .font(.headline)
