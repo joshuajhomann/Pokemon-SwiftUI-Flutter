@@ -57,7 +57,12 @@ struct PokemonDetailView : View {
 #if DEBUG
 struct PokemonDetailView_Previews : PreviewProvider {
     static var previews: some View {
-      PokemonDetailView(pokemon: Pokemon.all.first!)
+      Group {
+        PokemonDetailView(pokemon: Pokemon.all.first!)
+          .previewDevice(PreviewDevice(stringLiteral: "iPhone SE"))
+        PokemonDetailView(pokemon: Pokemon.all.first!)
+          .previewDevice(PreviewDevice(stringLiteral: "iPhone XS Max"))
+      }
     }
 }
 #endif

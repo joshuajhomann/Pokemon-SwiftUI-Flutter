@@ -11,25 +11,29 @@ import Combine
 
 class PokemonListModel: ObservableObject {
   @Published var pokemon: [Pokemon] = Pokemon.all
-  func search(for text: String) {
-    guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-      pokemon = Pokemon.all
-      return
-    }
-    pokemon = Pokemon.all.filter { $0.name.contains(text)}
+  var searchTerm: CurrentValueSubject<String, Never> = .init("")
+  private var searchSubscription: AnyCancellable?
+  init () {
+    searchSubscription = searchTerm
+      .map { term -> [Pokemon]  in
+        guard !term.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+          return Pokemon.all
+        }
+        return Pokemon.all.filter { $0.name.contains(term) }
+      }
+      .assign(to: \.pokemon, on: self)
   }
 }
 
-struct ContentView : View {
+struct PokemonListView : View {
   @ObservedObject var pokemonListModel: PokemonListModel
-  let searchText: Binding<String>
+  private let searchText: Binding<String>
   init(pokemonListModel: PokemonListModel) {
     self.pokemonListModel = pokemonListModel
     searchText = Binding<String>(
       get: {""},
-      set: { (text) in
-        pokemonListModel.search(for: text)
-    })
+      set: { term in pokemonListModel.searchTerm.value = term }
+    )
   }
   var body: some View {
     NavigationView {
@@ -48,10 +52,11 @@ struct SearchBar : View {
   @Binding var text: String
   var body: some View {
     HStack {
-      Image(systemName: "magnifyingglass")
-      TextField("Pokemon Search...", text: $text).textFieldStyle(RoundedBorderTextFieldStyle())
-      Button(action: { self.text = "" }) {
-        Text("Clear")
+        Image(systemName: "magnifyingglass")
+        TextField("Pokemon Search...", text: $text)
+          .textFieldStyle(RoundedBorderTextFieldStyle())
+        Button(action: { self.text = "" }) {
+          Text("Clear")
         }
         .padding(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12))
         .background(Color.accentColor)
@@ -88,8 +93,11 @@ struct PokemonRow : View {
 struct ContentView_Previews : PreviewProvider {
   static var previews: some View {
     Group {
-      ContentView(pokemonListModel: PokemonListModel())
-      ContentView(pokemonListModel: PokemonListModel()).colorScheme(.dark)
+      PokemonListView(pokemonListModel: PokemonListModel())
+        .previewDevice(PreviewDevice(stringLiteral: "iPhone SE"))
+      PokemonListView(pokemonListModel: PokemonListModel())
+        .previewDevice(PreviewDevice(stringLiteral: "iPhone XS Max"))
+        .colorScheme(.dark)
     }
   }
 }
