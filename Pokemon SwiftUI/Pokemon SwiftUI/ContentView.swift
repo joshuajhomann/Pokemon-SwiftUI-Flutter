@@ -9,7 +9,7 @@
 import SwiftUI
 import Combine
 
-class PokemonListModel: BindableObject {
+class PokemonListModel: ObservableObject {
   var didChange = PassthroughSubject<Void, Never>()
   var pokemon: [Pokemon] = Pokemon.all {
     didSet {
@@ -26,13 +26,13 @@ class PokemonListModel: BindableObject {
 }
 
 struct ContentView : View {
-  @ObjectBinding var pokemonListModel: PokemonListModel
+  @ObservedObject var pokemonListModel: PokemonListModel
   let searchText: Binding<String>
   init(pokemonListModel: PokemonListModel) {
     self.pokemonListModel = pokemonListModel
     searchText = Binding<String>(
-      getValue: {""},
-      setValue: { (text) in
+      get: {""},
+      set: { (text) in
         pokemonListModel.search(for: text)
     })
   }
@@ -40,10 +40,11 @@ struct ContentView : View {
     NavigationView {
       VStack {
         SearchBar(text: searchText)
-        List(pokemonListModel.pokemon.identified(by: \.name)) { pokemon in
+        List(pokemonListModel.pokemon, id: \.name) { pokemon in
           PokemonRow(pokemon: pokemon)
         }
-        }.navigationBarTitle(Text("Pokemon"))
+      }
+      .navigationBarTitle(Text("Pokemon"))
     }
   }
 }
@@ -53,7 +54,7 @@ struct SearchBar : View {
   var body: some View {
     HStack {
       Image(systemName: "magnifyingglass")
-      TextField("Pokemon Search...", text: $text).textFieldStyle(.roundedBorder)
+      TextField("Pokemon Search...", text: $text).textFieldStyle(RoundedBorderTextFieldStyle())
       Button(action: { self.text = "" }) {
         Text("Clear")
         }

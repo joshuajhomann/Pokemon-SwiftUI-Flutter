@@ -32,7 +32,7 @@ class ImageCache {
   }
 }
 
-class ImageModel: BindableObject {
+class ImageModel: ObservableObject {
   var didChange = PassthroughSubject<Void, Never>()
   var image: UIImage?
   init(url: URL) {
@@ -48,7 +48,7 @@ class ImageModel: BindableObject {
 }
 
 struct RemoteImage : View {
-  @ObjectBinding var imageModel: ImageModel
+  @ObservedObject var imageModel: ImageModel
   init(url: URL) {
     imageModel = ImageModel(url: url)
   }

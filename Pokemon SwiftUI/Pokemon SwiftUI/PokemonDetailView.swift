@@ -14,7 +14,7 @@ struct PokemonDetailView : View {
   var body: some View {
     ZStack  {
       RemoteImage(url: pokemon.artURL)
-        .tapAction {
+        .onTapGesture {
           withAnimation(.spring()) {
             self.showImage.toggle()
           }
