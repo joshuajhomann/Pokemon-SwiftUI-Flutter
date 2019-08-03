@@ -11,39 +11,43 @@ import Combine
 import UIKit
 
 class ImageCache {
-  enum ImageCacheError: Error {
+  enum Error: Swift.Error {
     case dataConversionFailed
+    case sessionError(Swift.Error)
   }
   static let shared = ImageCache()
   private let cache = NSCache<NSURL, UIImage>()
   private init() { }
-  func image(for url: URL, completion: @escaping (Result<UIImage, Error>) -> ()) {
-    guard let image = cache.object(forKey: url as NSURL) else {
-      URLSession.shared.dataTask(with: url) { [cache] data, _, error in
-        guard let image = data.flatMap(UIImage.init(data:)) else {
-          return completion(.failure(error ?? ImageCacheError.dataConversionFailed))
+  static func image(for url: URL) -> AnyPublisher<UIImage?, ImageCache.Error> {
+    guard let image = shared.cache.object(forKey: url as NSURL) else {
+      return URLSession
+        .shared
+        .dataTaskPublisher(for: url)
+        .tryMap { (tuple) -> UIImage in
+          let (data, _) = tuple
+          guard let image = UIImage(data: data) else {
+            throw Error.dataConversionFailed
+          }
+          shared.cache.setObject(image, forKey: url as NSURL)
+          return image
         }
-        completion(.success(image))
-        cache.setObject(image, forKey: url as NSURL)
-      }.resume()
-      return
+        .mapError({ error in Error.sessionError(error) })
+        .eraseToAnyPublisher()
     }
-    completion(.success(image))
+    return Just(image)
+      .mapError({ _ in Error.dataConversionFailed })
+      .eraseToAnyPublisher()
   }
 }
 
 class ImageModel: ObservableObject {
-  var didChange = PassthroughSubject<Void, Never>()
-  var image: UIImage?
+  @Published var image: UIImage? = nil
+  var cacheSubscription: AnyCancellable?
   init(url: URL) {
-    ImageCache.shared.image(for: url) { result in
-      if case .success(let image) = result {
-        self.image = image
-        DispatchQueue.main.async {
-          self.didChange.send(())
-        }
-      }
-    }
+    cacheSubscription = ImageCache
+      .image(for: url)
+      .replaceError(with: nil)
+      .assign(to: \.image, on: self)
   }
 }
 
@@ -53,7 +57,10 @@ struct RemoteImage : View {
     imageModel = ImageModel(url: url)
   }
   var body: some View {
-    imageModel.image.map{Image(uiImage:$0).resizable()} ?? Image(systemName: "questionmark").resizable()
+    imageModel
+      .image
+      .map{Image(uiImage:$0).resizable()}
+      ?? Image(systemName: "questionmark").resizable()
   }
 }
 

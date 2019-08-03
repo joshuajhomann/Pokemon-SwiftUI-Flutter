@@ -10,12 +10,7 @@ import SwiftUI
 import Combine
 
 class PokemonListModel: ObservableObject {
-  var didChange = PassthroughSubject<Void, Never>()
-  var pokemon: [Pokemon] = Pokemon.all {
-    didSet {
-      didChange.send(())
-    }
-  }
+  @Published var pokemon: [Pokemon] = Pokemon.all
   func search(for text: String) {
     guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
       pokemon = Pokemon.all
