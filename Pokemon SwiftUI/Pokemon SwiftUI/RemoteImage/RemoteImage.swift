@@ -35,7 +35,7 @@ class ImageCache {
         .eraseToAnyPublisher()
     }
     return Just(image)
-      .mapError({ _ in Error.dataConversionFailed })
+      .mapError({ _ in fatalError() })
       .eraseToAnyPublisher()
   }
 }
