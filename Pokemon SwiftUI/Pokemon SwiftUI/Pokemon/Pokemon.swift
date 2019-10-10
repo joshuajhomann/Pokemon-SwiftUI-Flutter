@@ -32,6 +32,7 @@ struct Pokemon: Codable {
     case artURL = "art_url"
     case types, evolutions
   }
+  
   static let all: [Pokemon] = (Bundle.main.url(forResource: "pokemon", withExtension: "json")
     .flatMap {try! Data(contentsOf: $0)}
     .flatMap {try! JSONDecoder().decode([Pokemon].self, from: $0)} ?? [])

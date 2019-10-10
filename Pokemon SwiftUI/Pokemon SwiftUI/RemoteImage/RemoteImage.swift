@@ -47,6 +47,7 @@ class ImageModel: ObservableObject {
     cacheSubscription = ImageCache
       .image(for: url)
       .replaceError(with: nil)
+      .receive(on: RunLoop.main, options: .none)
       .assign(to: \.image, on: self)
   }
 }
@@ -59,7 +60,7 @@ struct RemoteImage : View {
   var body: some View {
     imageModel
       .image
-      .map{Image(uiImage:$0).resizable()}
+      .map { Image(uiImage:$0).resizable() }
       ?? Image(systemName: "questionmark").resizable()
   }
 }
@@ -67,7 +68,7 @@ struct RemoteImage : View {
 #if DEBUG
 struct RemoteImage_Previews : PreviewProvider {
   static var previews: some View {
-    RemoteImage(url: URL(string: "http://assets22.pokemon.com/assets/cms2/img/pokedex/full/001.png")!)
+    RemoteImage(url: URL(string:"http://assets22.pokemon.com/assets/cms2/img/pokedex/full/001.png")!)
   }
 }
 #endif
