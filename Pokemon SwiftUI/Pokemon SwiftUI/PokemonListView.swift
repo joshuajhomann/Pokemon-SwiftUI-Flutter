@@ -12,10 +12,10 @@ import Combine
 class PokemonListModel: ObservableObject {
   @Published var pokemon: [Pokemon] = Pokemon.all
   func search(term: String) {
-    guard !term.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+    guard !term.isEmpty else {
       return pokemon = Pokemon.all
     }
-    pokemon =  Pokemon.all.filter { $0.name.contains(term) }
+    pokemon = Pokemon.all.filter { $0.name.contains(term)}
   }
 }
 
@@ -58,7 +58,7 @@ struct SearchBar : View {
       .foregroundColor(Color.white)
       .cornerRadius(4)
     }
-    .padding(8)
+    .padding()
   }
 }
 
